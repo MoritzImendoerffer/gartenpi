@@ -18,11 +18,7 @@
             --muted:     #6b8f6b;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg);
@@ -33,7 +29,6 @@
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
-            /* subtle noise texture */
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
         }
 
@@ -55,12 +50,8 @@
             font-family: 'Playfair Display', serif;
             font-size: 1.8rem;
             letter-spacing: 0.02em;
-            color: var(--text);
         }
-
-        .title span {
-            color: var(--green);
-        }
+        .title span { color: var(--green); }
 
         /* Status indicator */
         .status-block {
@@ -79,14 +70,11 @@
             justify-content: center;
             transition: all 0.4s ease;
         }
-
         .dot-ring.on {
             background: rgba(74, 222, 128, 0.1);
-            box-shadow: 0 0 0 12px rgba(74, 222, 128, 0.06),
-                        0 0 0 24px rgba(74, 222, 128, 0.03);
+            box-shadow: 0 0 0 12px rgba(74, 222, 128, 0.06), 0 0 0 24px rgba(74, 222, 128, 0.03);
             animation: pulse 2s infinite;
         }
-
         .dot-ring.off {
             background: rgba(248, 113, 113, 0.08);
             box-shadow: none;
@@ -98,7 +86,6 @@
             border-radius: 50%;
             transition: background 0.4s ease;
         }
-
         .dot.on  { background: var(--green); }
         .dot.off { background: var(--red); }
 
@@ -113,16 +100,24 @@
             text-transform: uppercase;
             color: var(--muted);
         }
-
         .status-value {
             font-size: 1.1rem;
             font-weight: 500;
             letter-spacing: 0.05em;
             transition: color 0.3s ease;
         }
-
         .status-value.on  { color: var(--green); }
         .status-value.off { color: var(--red); }
+
+        /* Countdown */
+        .countdown {
+            font-size: 0.75rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+            min-height: 1.2rem;
+            transition: opacity 0.3s ease;
+        }
+        .countdown.visible { color: var(--green); }
 
         /* Toggle button */
         .btn {
@@ -138,23 +133,62 @@
             transition: all 0.2s ease;
             font-weight: 500;
         }
-
-        .btn.on {
-            background: var(--green-dim);
-            color: var(--green);
-            border: 1px solid var(--green);
-        }
-
-        .btn.off {
-            background: var(--red-dim);
-            color: var(--red);
-            border: 1px solid var(--red);
-        }
-
+        .btn.on  { background: var(--green-dim); color: var(--green); border: 1px solid var(--green); }
+        .btn.off { background: var(--red-dim);   color: var(--red);   border: 1px solid var(--red); }
         .btn:hover  { filter: brightness(1.2); }
         .btn:active { transform: scale(0.97); }
 
-        /* Footer */
+        /* Timeout control */
+        .timeout-block {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .timeout-label {
+            font-size: 0.7rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .timeout-row {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .timeout-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            padding: 0.5rem 0.75rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .timeout-input:focus { border-color: var(--muted); }
+        .timeout-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            color: var(--muted);
+            font-family: 'DM Mono', monospace;
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+        }
+        .timeout-btn:hover { border-color: var(--muted); color: var(--text); }
+        .timeout-feedback {
+            font-size: 0.7rem;
+            color: var(--green);
+            min-height: 1rem;
+            letter-spacing: 0.05em;
+        }
+
         .footer {
             font-size: 0.7rem;
             color: var(--muted);
@@ -174,6 +208,7 @@
             <div class="status-value {{ 'on' if is_on else 'off' }}" id="statusText">
                 {{ 'Running' if is_on else 'Stopped' }}
             </div>
+            <div class="countdown" id="countdown"></div>
         </div>
 
         <button
@@ -184,18 +219,51 @@
             {{ 'Turn Off' if is_on else 'Turn On' }}
         </button>
 
+        <!-- Timeout configuration -->
+        <div class="timeout-block">
+            <div class="timeout-label">failsafe timeout</div>
+            <div class="timeout-row">
+                <input
+                    class="timeout-input"
+                    type="number"
+                    id="timeoutInput"
+                    min="1"
+                    max="120"
+                    value="{{ timeout_minutes }}"
+                    placeholder="minutes"
+                >
+                <button class="timeout-btn" onclick="saveTimeout()">set</button>
+            </div>
+            <div class="timeout-feedback" id="timeoutFeedback"></div>
+        </div>
+
         <div class="footer">gpio 18 · gartenpi</div>
     </div>
 
     <script>
+        let countdownInterval = null;
+        let remainingSeconds = null;
+
+        // Poll status every 10 seconds to stay in sync
+        setInterval(fetchStatus, 10000);
+
+        async function fetchStatus() {
+            try {
+                const res = await fetch("/status");
+                const data = await res.json();
+                updateUI(data.is_on, data.remaining_seconds);
+            } catch (err) {
+                console.error("Status fetch failed:", err);
+            }
+        }
+
         async function togglePump() {
             const btn = document.getElementById("toggleBtn");
             btn.disabled = true;
-
             try {
-                const response = await fetch("/toggle", { method: "POST" });
-                const data = await response.json();
-                updateUI(data.is_on);
+                const res = await fetch("/toggle", { method: "POST" });
+                const data = await res.json();
+                updateUI(data.is_on, data.remaining_seconds);
             } catch (err) {
                 console.error("Toggle failed:", err);
             } finally {
@@ -203,18 +271,72 @@
             }
         }
 
-        function updateUI(isOn) {
+        async function saveTimeout() {
+            const input = document.getElementById("timeoutInput");
+            const feedback = document.getElementById("timeoutFeedback");
+            const minutes = parseInt(input.value);
+            if (!minutes || minutes < 1) {
+                feedback.textContent = "enter a valid number of minutes";
+                feedback.style.color = "var(--red)";
+                return;
+            }
+            try {
+                const res = await fetch("/timeout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ minutes })
+                });
+                const data = await res.json();
+                input.value = data.timeout_minutes;
+                feedback.textContent = "saved";
+                feedback.style.color = "var(--green)";
+                setTimeout(() => feedback.textContent = "", 2000);
+            } catch (err) {
+                feedback.textContent = "failed to save";
+                feedback.style.color = "var(--red)";
+            }
+        }
+
+        function updateUI(isOn, remaining) {
             const dot        = document.getElementById("dot");
             const ring       = document.getElementById("ring");
             const statusText = document.getElementById("statusText");
             const btn        = document.getElementById("toggleBtn");
 
-            dot.className        = "dot "         + (isOn ? "on" : "off");
-            ring.className       = "dot-ring "    + (isOn ? "on" : "off");
+            dot.className        = "dot "          + (isOn ? "on" : "off");
+            ring.className       = "dot-ring "     + (isOn ? "on" : "off");
             statusText.className = "status-value " + (isOn ? "on" : "off");
             statusText.textContent = isOn ? "Running" : "Stopped";
-            btn.className        = "btn "         + (isOn ? "on" : "off");
+            btn.className        = "btn "          + (isOn ? "on" : "off");
             btn.textContent      = isOn ? "Turn Off" : "Turn On";
+
+            // Update countdown
+            clearInterval(countdownInterval);
+            remainingSeconds = remaining;
+            if (isOn && remaining !== null) {
+                updateCountdown();
+                countdownInterval = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateCountdown();
+                    } else {
+                        clearInterval(countdownInterval);
+                        // pump timed out — re-fetch actual state
+                        fetchStatus();
+                    }
+                }, 1000);
+            } else {
+                document.getElementById("countdown").textContent = "";
+                document.getElementById("countdown").className = "countdown";
+            }
+        }
+
+        function updateCountdown() {
+            const el = document.getElementById("countdown");
+            const m = Math.floor(remainingSeconds / 60);
+            const s = String(remainingSeconds % 60).padStart(2, "0");
+            el.textContent = `off in ${m}:${s}`;
+            el.className = "countdown visible";
         }
     </script>
 </body>

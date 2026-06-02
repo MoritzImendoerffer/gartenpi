@@ -95,6 +95,9 @@ All configuration is at the top of `gpio_relay.py`:
 |---|---|---|
 | `RELAY_PIN` | `18` | BCM GPIO pin number |
 | `RELAY_ACTIVE_HIGH` | `False` | Set to `True` for active HIGH relay modules |
+| `MAX_RUNTIME_MINUTES` | `15` | Failsafe timeout — pump turns off automatically after this many minutes |
+
+The timeout can also be changed at runtime via the web UI without restarting the service.
 
 ## Accessing the interface
 
