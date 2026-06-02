@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gartenpi</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg:        #0f1a0f;
+            --surface:   #1a2e1a;
+            --border:    #2d4a2d;
+            --green:     #4ade80;
+            --green-dim: #166534;
+            --red:       #f87171;
+            --red-dim:   #7f1d1d;
+            --text:      #d4edda;
+            --muted:     #6b8f6b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'DM Mono', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            /* subtle noise texture */
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 1.5rem;
+            padding: 2.5rem 2rem;
+            width: 100%;
+            max-width: 360px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 0 60px rgba(74, 222, 128, 0.04);
+        }
+
+        .title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.02em;
+            color: var(--text);
+        }
+
+        .title span {
+            color: var(--green);
+        }
+
+        /* Status indicator */
+        .status-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .dot-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s ease;
+        }
+
+        .dot-ring.on {
+            background: rgba(74, 222, 128, 0.1);
+            box-shadow: 0 0 0 12px rgba(74, 222, 128, 0.06),
+                        0 0 0 24px rgba(74, 222, 128, 0.03);
+            animation: pulse 2s infinite;
+        }
+
+        .dot-ring.off {
+            background: rgba(248, 113, 113, 0.08);
+            box-shadow: none;
+        }
+
+        .dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            transition: background 0.4s ease;
+        }
+
+        .dot.on  { background: var(--green); }
+        .dot.off { background: var(--red); }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 12px rgba(74,222,128,0.06), 0 0 0 24px rgba(74,222,128,0.03); }
+            50%       { box-shadow: 0 0 0 16px rgba(74,222,128,0.10), 0 0 0 32px rgba(74,222,128,0.05); }
+        }
+
+        .status-label {
+            font-size: 0.75rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        .status-value {
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            transition: color 0.3s ease;
+        }
+
+        .status-value.on  { color: var(--green); }
+        .status-value.off { color: var(--red); }
+
+        /* Toggle button */
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .btn.on {
+            background: var(--green-dim);
+            color: var(--green);
+            border: 1px solid var(--green);
+        }
+
+        .btn.off {
+            background: var(--red-dim);
+            color: var(--red);
+            border: 1px solid var(--red);
+        }
+
+        .btn:hover  { filter: brightness(1.2); }
+        .btn:active { transform: scale(0.97); }
+
+        /* Footer */
+        .footer {
+            font-size: 0.7rem;
+            color: var(--muted);
+            letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="title">Garten<span>pi</span></div>
+
+        <div class="status-block">
+            <div class="dot-ring {{ 'on' if is_on else 'off' }}" id="ring">
+                <div class="dot {{ 'on' if is_on else 'off' }}" id="dot"></div>
+            </div>
+            <div class="status-label">pump status</div>
+            <div class="status-value {{ 'on' if is_on else 'off' }}" id="statusText">
+                {{ 'Running' if is_on else 'Stopped' }}
+            </div>
+        </div>
+
+        <button
+            class="btn {{ 'on' if is_on else 'off' }}"
+            id="toggleBtn"
+            onclick="togglePump()"
+        >
+            {{ 'Turn Off' if is_on else 'Turn On' }}
+        </button>
+
+        <div class="footer">gpio 18 · gartenpi</div>
+    </div>
+
+    <script>
+        async function togglePump() {
+            const btn = document.getElementById("toggleBtn");
+            btn.disabled = true;
+
+            try {
+                const response = await fetch("/toggle", { method: "POST" });
+                const data = await response.json();
+                updateUI(data.is_on);
+            } catch (err) {
+                console.error("Toggle failed:", err);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function updateUI(isOn) {
+            const dot        = document.getElementById("dot");
+            const ring       = document.getElementById("ring");
+            const statusText = document.getElementById("statusText");
+            const btn        = document.getElementById("toggleBtn");
+
+            dot.className        = "dot "         + (isOn ? "on" : "off");
+            ring.className       = "dot-ring "    + (isOn ? "on" : "off");
+            statusText.className = "status-value " + (isOn ? "on" : "off");
+            statusText.textContent = isOn ? "Running" : "Stopped";
+            btn.className        = "btn "         + (isOn ? "on" : "off");
+            btn.textContent      = isOn ? "Turn Off" : "Turn On";
+        }
+    </script>
+</body>
+</html>

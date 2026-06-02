@@ -1,0 +1,13 @@
+[Unit]
+Description=Gartenpi pump control
+After=network.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/gartenpi
+ExecStart=/usr/bin/python3 /home/pi/gartenpi/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
