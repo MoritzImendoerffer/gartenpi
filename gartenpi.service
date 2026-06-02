@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 User=moritz
-WorkingDirectory=/home/pi/gartenpi
-ExecStart=/usr/bin/python3 /home/pi/gartenpi/app.py
+WorkingDirectory=/home/moritz/gartenpi
+ExecStart=/usr/bin/python3 /home/moritz/gartenpi/app.py
 Restart=always
 RestartSec=5
 
