@@ -24,10 +24,13 @@ git clone https://github.com/yourusername/gartenpi.git
 cd gartenpi
 ```
 
-### 2. Install dependencies
+### 2. Create a virtual environment and install dependencies
 
 ```bash
-pip3 install -r requirements.txt --break-system-packages
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+deactivate
 ```
 
 ### 3. Enable the serial port for StromPi 3
@@ -40,7 +43,16 @@ sudo raspi-config
 sudo reboot
 ```
 
-### 4. Test the relay manually
+### 4. Move the template into the templates folder
+
+Flask requires templates to be in a `templates/` subfolder:
+
+```bash
+mkdir -p ~/gartenpi/templates
+mv ~/gartenpi/index.html ~/gartenpi/templates/
+```
+
+### 5. Test the relay manually
 
 ```bash
 python3 test_relay_low.py
@@ -48,7 +60,7 @@ python3 test_relay_low.py
 
 Listen for a click. If the relay does not activate, try `test_relay_high.py` and update `RELAY_ACTIVE_HIGH` in `gpio_relay.py` accordingly.
 
-### 5. Test the Flask app manually
+### 6. Test the Flask app manually
 
 ```bash
 python3 app.py
@@ -58,7 +70,7 @@ Open `http://<tailscale-ip>:5000` in your browser. Verify the button toggles the
 
 Press `Ctrl+C` to stop.
 
-### 6. Install the systemd service
+### 7. Install the systemd service
 
 ```bash
 sudo cp gartenpi.service /etc/systemd/system/
