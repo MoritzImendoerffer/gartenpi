@@ -3,7 +3,7 @@ Description=Gartenpi pump control
 After=network.target
 
 [Service]
-User=pi
+User=moritz
 WorkingDirectory=/home/pi/gartenpi
 ExecStart=/usr/bin/python3 /home/pi/gartenpi/app.py
 Restart=always
