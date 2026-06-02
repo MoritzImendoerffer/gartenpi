@@ -182,6 +182,14 @@
             letter-spacing: 0.05em;
         }
         .timeout-btn:hover { border-color: var(--muted); color: var(--text); }
+        .timeout-active {
+            font-size: 0.75rem;
+            color: var(--green);
+            letter-spacing: 0.08em;
+        }
+        .timeout-active span {
+            font-weight: 500;
+        }
         .timeout-feedback {
             font-size: 0.7rem;
             color: var(--green);
@@ -222,6 +230,9 @@
         <!-- Timeout configuration -->
         <div class="timeout-block">
             <div class="timeout-label">failsafe timeout</div>
+            <div class="timeout-active">
+                active: <span id="activeTimeout">{{ timeout_minutes }}</span> min
+            </div>
             <div class="timeout-row">
                 <input
                     class="timeout-input"
@@ -229,8 +240,7 @@
                     id="timeoutInput"
                     min="1"
                     max="120"
-                    value="{{ timeout_minutes }}"
-                    placeholder="minutes"
+                    placeholder="{{ timeout_minutes }} min"
                 >
                 <button class="timeout-btn" onclick="saveTimeout()">set</button>
             </div>
@@ -287,7 +297,9 @@
                     body: JSON.stringify({ minutes })
                 });
                 const data = await res.json();
-                input.value = data.timeout_minutes;
+                document.getElementById("activeTimeout").textContent = data.timeout_minutes;
+                input.value = "";
+                input.placeholder = data.timeout_minutes + " min";
                 feedback.textContent = "saved";
                 feedback.style.color = "var(--green)";
                 setTimeout(() => feedback.textContent = "", 2000);
